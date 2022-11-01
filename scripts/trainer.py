@@ -31,7 +31,7 @@ class Trainer:
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
-        self.best_acc = 50
+        self.best_acc = 0.5
         self.train_acc_arr = []
         self.val_acc_arr = []
         self.train_losses = []
