@@ -4,7 +4,7 @@ from pathlib import Path
 
 def split_data(data_dir, train_size=0.8, val_size=0.1):
     random.seed(1234)
-    data = Path('data').glob('*/*')
+    data = Path(data_dir).glob('*/*')
     data = [x for x in data if x.is_file() and x.suffix != '.zip']
     random.shuffle(data)
     train_size = int(len(data) * train_size)

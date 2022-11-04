@@ -1,6 +1,9 @@
 # Image files
 data/*
 
+# TensorBoard
+runs/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

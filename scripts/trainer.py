@@ -71,6 +71,7 @@ class Trainer:
             self.train_acc_arr.append(correct/total)
             self.train_losses.append(total_loss)
             self.validate(val_loader)
+            self.scheduler.step()
             print(f'Epoch: {epoch}, Accuracy: {correct/total}')
 
     def validate(self, val_loader):
