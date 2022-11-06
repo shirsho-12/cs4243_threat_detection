@@ -77,11 +77,13 @@ class TripletLossTrainer:
         self.optimizer = optimizer
         self.criterion = nn.TripletMarginLoss(margin=1.0, p=2)
         self.scheduler = scheduler
-        self.best_acc = 0.5
+        self.best_acc = 1/3
         self.train_acc_arr = []
         self.val_acc_arr = []
         self.train_losses = []
         self.val_losses = []
+        self.test_acc = 0
+        self.test_loss = 0
         if (device == 'cuda') and torch.cuda.is_available():
             self.device = torch.device('cuda')
         else:
@@ -104,7 +106,7 @@ class TripletLossTrainer:
         # loss = torch.sum(torch.clamp(d_p - d_n + 0.2, min=0.0))
         return loss
 
-    def train(self, train_loader, val_loader, epochs=10):
+    def train(self, train_loader, val_loader, epochs=10, name='model'):
         self.model.to(self.device)
         total = 0
         correct = 0
@@ -145,13 +147,13 @@ class TripletLossTrainer:
             writer.add_scalar("Accuracy/train", correct/total, epoch)
             self.train_acc_arr.append(correct/total)
             self.train_losses.append(total_loss)
-            self.validate(val_loader, epoch)
+            self.validate(val_loader, epoch, f'{name}_{epoch}')
             self.scheduler.step()
             writer.add_hparams({'hparam/lr': self.scheduler.get_last_lr()[0]})
             print(f'Epoch: {epoch}, Accuracy: {correct/total}')
         writer.flush()
 
-    def validate(self, val_loader, epoch):
+    def validate(self, val_loader, epoch, name):
         self.model.eval()
         total = 0
         correct = 0
@@ -189,9 +191,9 @@ class TripletLossTrainer:
             if correct/total > self.best_acc:
                 self.best_acc = correct/total
                 print('Saving model...')
-                torch.save(self.model.state_dict(), 'best_model.pth')
+                self.save_model(name)
 
-    def test(self, test_loader):
+    def test(self, test_loader, name='triplet_model'):
         self.model.eval()
         total = 0
         correct = 0
@@ -209,12 +211,28 @@ class TripletLossTrainer:
                 if i % 100 == 0:
                     print(f'Test Loss: {loss.item()}')
         print(f'Accuracy: {100 * correct / total}')
+        self.test_acc = correct/total
+        self.test_loss = loss
+        self.save_all(name=name)
 
     def save_model(self, path):
-        torch.save(self.model.state_dict(), path)
+        torch.save(self.model.state_dict(), f'models/{path}.pth')
 
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
+
+    def save_all(self, name):
+        torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'scheduler_state_dict': self.scheduler.state_dict(),
+            'train_acc_arr': self.train_acc_arr,
+            'val_acc_arr': self.val_acc_arr,
+            'train_losses': self.train_losses,
+            'val_losses': self.val_losses,
+            'test_acc': self.test_acc,
+            'test_loss': self.test_loss
+        }, f'{name}_full.pth')
 
 
 def split_data(data_dir, train_size=0.8, val_size=0.1):
@@ -261,7 +279,7 @@ transforms = {
 }
 
 
-def runner(num_epochs=10, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.0005, step_size=7, gamma=0.1):
+def runner(num_epochs=50, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.0005, step_size=10, gamma=0.1):
     train_data, val_data, test_data = split_data('data')
     print(len(train_data), len(val_data), len(test_data))
     train_dataset = TripletDataset(train_data, transform=transforms['train'])
@@ -281,7 +299,8 @@ def runner(num_epochs=10, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.
 
     trainer = TripletLossTrainer(model, optimizer, scheduler)
 
-    trainer.train(train_loader, val_loader, epochs=num_epochs)
+    trainer.train(train_loader, val_loader,
+                  epochs=num_epochs, name='triplet_model')
     trainer.test(test_loader)
 
     return trainer
