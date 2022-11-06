@@ -1,6 +1,12 @@
 # Image files
 data/*
 
+# Saved models
+models/*
+
+# TensorBoard
+runs/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
