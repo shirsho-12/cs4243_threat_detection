@@ -8,6 +8,8 @@ from scripts.dataloader import get_loaders
 
 if __name__ == '__main__':
     for color_space in ['gray', 'rgb', 'hsv', 'lab']:
+        print("COLOR SPACE : ", color_space,
+              "\n===============================")
         train_loader, val_loader, test_loader = get_loaders(
             color_space=color_space)
 

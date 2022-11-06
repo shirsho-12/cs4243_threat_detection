@@ -279,7 +279,7 @@ transforms = {
 }
 
 
-def runner(num_epochs=50, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.0005, step_size=10, gamma=0.1):
+def runner(num_epochs=50, batch_size=32, lr=0.001, weight_decay=0.0005, step_size=10, gamma=0.1):
     train_data, val_data, test_data = split_data('data')
     print(len(train_data), len(val_data), len(test_data))
     train_dataset = TripletDataset(train_data, transform=transforms['train'])
@@ -293,7 +293,7 @@ def runner(num_epochs=50, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.
     model = resnet18(weights=None)
     model.fc = nn.Linear(512, 3)
     optimizer = torch.optim.Adam(model.parameters(
-    ), lr=lr, weight_decay=weight_decay, amsgrad=True, eps=1e-8, momentum=momentum)
+    ), lr=lr, weight_decay=weight_decay, amsgrad=True, eps=1e-8)
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, step_size=step_size, gamma=gamma)
 
