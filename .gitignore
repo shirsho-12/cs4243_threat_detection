@@ -1,6 +1,9 @@
 # Image files
 data/*
 
+# Saved models
+models/*
+
 # TensorBoard
 runs/*
 

@@ -290,7 +290,7 @@ def runner(num_epochs=50, batch_size=32, lr=0.001, momentum=0.9, weight_decay=0.
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    model = resnet18(pretrained=False)
+    model = resnet18(weights=None)
     model.fc = nn.Linear(512, 3)
     optimizer = torch.optim.Adam(model.parameters(
     ), lr=lr, weight_decay=weight_decay, amsgrad=True, eps=1e-8, momentum=momentum)

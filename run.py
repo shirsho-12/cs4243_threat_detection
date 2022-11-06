@@ -6,18 +6,19 @@ import torch.nn as nn
 from scripts.trainer import Trainer
 from scripts.dataloader import get_loaders
 
-for color_space in ['gray', 'rgb', 'hsv', 'lab']:
-    train_loader, val_loader, test_loader = get_loaders(
-        color_space=color_space)
+if __name__ == '__main__':
+    for color_space in ['gray', 'rgb', 'hsv', 'lab']:
+        train_loader, val_loader, test_loader = get_loaders(
+            color_space=color_space)
 
-    model = resnet18(pretrained=False)
-    model.fc = nn.Linear(512, 3)
+        model = resnet18(weights=None)
+        model.fc = nn.Linear(512, 3)
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.CrossEntropyLoss()
-    scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        criterion = nn.CrossEntropyLoss()
+        scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
-    trainer = Trainer(model, optimizer, criterion, scheduler, 'cuda')
-    trainer.train(train_loader, val_loader, epochs=2,
-                  name=f'resnet18_{color_space}')
-    trainer.test(test_loader, name=f'vanilla_resnet18_{color_space}')
+        trainer = Trainer(model, optimizer, criterion, scheduler, 'cuda')
+        trainer.train(train_loader, val_loader, epochs=50,
+                      name=f'resnet18_{color_space}')
+        trainer.test(test_loader, name=f'vanilla_resnet18_{color_space}')

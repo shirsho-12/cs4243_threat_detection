@@ -2,6 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 import cv2
 from scripts.utils import split_data
 import torchvision.transforms as T
+import numpy as np
 
 train_transforms = T.Compose([
     T.ToPILImage(),
@@ -51,6 +52,8 @@ class ThreatDataset(Dataset):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         elif self.color_space == 'gray':
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # Need to broadcast the gray image to 3 channels
+            image = np.dstack((image, image, image))
         elif self.color_space == 'hsv':
             image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         elif self.color_space == 'lab':
