@@ -136,8 +136,8 @@ class TripletLossTrainer:
                     print(f'Epoch: {epoch}, Loss: {loss.item()}')
 
                 # return y, y_pred
-                roc = metrics(y_label.detach().numpy(), F.softmax(
-                    y_pred, dim=1).detach().numpy())
+                roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
+                    y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/train", loss, epoch)
                 writer.add_scalar("ROC/train", roc, epoch)
             writer.add_scalar("Accuracy/train", correct/total, epoch)
@@ -175,8 +175,8 @@ class TripletLossTrainer:
                 correct += (predicted.cpu() == y_label).sum().item()
                 if i % 100 == 0:
                     print(f'Validation Loss: {loss.item()}')
-                roc = metrics(y_label.detach().numpy(), F.softmax(
-                    y_pred, dim=1).detach().numpy())
+                roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
+                    y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/val", loss, epoch)
                 writer.add_scalar("ROC/val", roc, epoch)
 
@@ -203,7 +203,7 @@ class TripletLossTrainer:
                 loss = self.criterion(y_pred, y)
 
                 _, predicted = torch.max(y_pred.data, 1)
-                correct += (predicted.detach().numpy() == y_label).sum().item()
+                correct += (predicted.detach().cpu().numpy() == y_label).sum().item()
                 if i % 100 == 0:
                     print(f'Test Loss: {loss.item()}')
         print(f'Accuracy: {100 * correct / total}')
