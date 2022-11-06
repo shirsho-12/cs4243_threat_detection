@@ -90,11 +90,7 @@ class TripletLossTrainer:
             self.device = torch.device('cpu')
         self.writer = writer
 
-    def get_loss(self, anchor, positive, negative):
-        anchor = anchor.to(self.device)
-        positive = positive.to(self.device)
-        negative = negative.to(self.device)
-        anchor_embedding = self.model(anchor)
+    def get_loss(self, anchor_embedding, positive, negative):
         positive_embedding = self.model(positive)
         negative_embedding = self.model(negative)
 
@@ -126,7 +122,7 @@ class TripletLossTrainer:
 
                 self.optimizer.zero_grad()
                 y_pred = self.model(anchor)
-                loss = self.get_loss(anchor, positive, negative)
+                loss = self.get_loss(y_pred, positive, negative)
 
                 loss.backward()
                 self.optimizer.step()
@@ -168,13 +164,13 @@ class TripletLossTrainer:
                 y_label = y
                 y = F.one_hot(y, num_classes=3).to(self.device).float()
                 total += y.size(0)
-                loss = self.get_loss(anchor, positive, negative)
 
                 total += y.size(0)
                 y_pred = self.model(anchor)
                 _, predicted = torch.max(y_pred.data, 1)
                 # print(predicted)
 
+                loss = self.get_loss(y_pred, positive, negative)
                 total_loss += loss
                 correct += (predicted.cpu() == y_label).sum().item()
                 if i % 100 == 0:
