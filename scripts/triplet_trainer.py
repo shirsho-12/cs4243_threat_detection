@@ -145,7 +145,7 @@ class TripletLossTrainer:
             self.train_losses.append(total_loss)
             self.validate(val_loader, epoch, f'{name}_{epoch}')
             self.scheduler.step()
-            writer.add_hparams({'hparam/lr': self.scheduler.get_last_lr()[0]})
+            writer.add_scalar('hparam/lr', self.scheduler.get_last_lr()[0])
             print(f'Epoch: {epoch}, Accuracy: {correct/total}')
         writer.flush()
 
@@ -203,7 +203,8 @@ class TripletLossTrainer:
                 loss = self.criterion(y_pred, y)
 
                 _, predicted = torch.max(y_pred.data, 1)
-                correct += (predicted.detach().cpu().numpy() == y_label).sum().item()
+                correct += (predicted.detach().cpu().numpy()
+                            == y_label).sum().item()
                 if i % 100 == 0:
                     print(f'Test Loss: {loss.item()}')
         print(f'Accuracy: {100 * correct / total}')
