@@ -1,6 +1,10 @@
 # Image files
 data/*
 
+# Other 
+bifpn_ft/*
+bifpn_ft.zip 
+
 # Saved models
 models/*
 
