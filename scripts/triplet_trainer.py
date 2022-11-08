@@ -15,10 +15,10 @@ from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
 
 
-def metrics(labels, preds):
-    roc = roc_auc_score(labels, preds, multi_class='ovr')
-    # acc = accuracy_score(labels, preds)
-    return roc
+# def metrics(labels, preds):
+#     roc = roc_auc_score(labels, preds, multi_class='ovr')
+#     # acc = accuracy_score(labels, preds)
+#     return roc
 
 
 class TripletDataset(Dataset):
@@ -136,8 +136,8 @@ class TripletLossTrainer:
                     print(f'Epoch: {epoch}, Loss: {loss.item()}')
 
                 # return y, y_pred
-                roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
-                    y_pred, dim=1).detach().cpu().numpy())
+                # roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
+                #     y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/train", loss, epoch)
                 writer.add_scalar("ROC/train", roc, epoch)
             writer.add_scalar("Accuracy/train", correct/total, epoch)
@@ -165,7 +165,6 @@ class TripletLossTrainer:
                 y = F.one_hot(y, num_classes=3).to(self.device).float()
                 total += y.size(0)
 
-                total += y.size(0)
                 y_pred = self.model(anchor)
                 _, predicted = torch.max(y_pred.data, 1)
                 # print(predicted)
@@ -175,8 +174,8 @@ class TripletLossTrainer:
                 correct += (predicted.cpu() == y_label).sum().item()
                 if i % 100 == 0:
                     print(f'Validation Loss: {loss.item()}')
-                roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
-                    y_pred, dim=1).detach().cpu().numpy())
+                # roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
+                #     y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/val", loss, epoch)
                 writer.add_scalar("ROC/val", roc, epoch)
 
@@ -194,17 +193,23 @@ class TripletLossTrainer:
         total = 0
         correct = 0
         with torch.no_grad():
-            for i, (x, y) in tqdm(enumerate(test_loader)):
-                x = x.to(self.device)
+             for i, (anchor, positive, negative, y) in tq:
+                # x = x.to(self.device)
+                anchor = anchor.to(self.device)
+                positive = positive.to(self.device)
+                negative = negative.to(self.device)
                 y_label = y
                 y = F.one_hot(y, num_classes=3).to(self.device).float()
                 total += y.size(0)
-                y_pred = self.model(x)
-                loss = self.criterion(y_pred, y)
 
+                y_pred = self.model(anchor)
                 _, predicted = torch.max(y_pred.data, 1)
-                correct += (predicted.detach().cpu().numpy()
-                            == y_label).sum().item()
+                # print(predicted)
+
+                loss = self.get_loss(y_pred, positive, negative)
+                total_loss += loss
+                correct += (predicted.cpu() == y_label).sum().item()
+
                 if i % 100 == 0:
                     print(f'Test Loss: {loss.item()}')
         print(f'Accuracy: {100 * correct / total}')
