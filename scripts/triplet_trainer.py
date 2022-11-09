@@ -2,9 +2,7 @@ import random
 import cv2
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import roc_auc_score
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 from torchvision.models import resnet18
@@ -139,7 +137,7 @@ class TripletLossTrainer:
                 # roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
                 #     y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/train", loss, epoch)
-                writer.add_scalar("ROC/train", roc, epoch)
+                # writer.add_scalar("ROC/train", roc, epoch)
             writer.add_scalar("Accuracy/train", correct/total, epoch)
             self.train_acc_arr.append(correct/total)
             self.train_losses.append(total_loss)
@@ -177,7 +175,7 @@ class TripletLossTrainer:
                 # roc = metrics(y_label.detach().cpu().numpy(), F.softmax(
                 #     y_pred, dim=1).detach().cpu().numpy())
                 writer.add_scalar("Loss/val", loss, epoch)
-                writer.add_scalar("ROC/val", roc, epoch)
+                # writer.add_scalar("ROC/val", roc, epoch)Z
 
             writer.add_scalar("Accuracy/val", correct/total, epoch)
             print(f'Validation Accuracy: {correct/total}')
@@ -192,8 +190,11 @@ class TripletLossTrainer:
         self.model.eval()
         total = 0
         correct = 0
+        total_loss = 0
         with torch.no_grad():
-             for i, (anchor, positive, negative, y) in tq:
+            tq = tqdm(enumerate(test_loader))
+
+            for i, (anchor, positive, negative, y) in tq:
                 # x = x.to(self.device)
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
@@ -212,10 +213,10 @@ class TripletLossTrainer:
 
                 if i % 100 == 0:
                     print(f'Test Loss: {loss.item()}')
-        print(f'Accuracy: {100 * correct / total}')
-        self.test_acc = correct/total
-        self.test_loss = loss
-        self.save_all(name=name)
+            print(f'Accuracy: {100 * correct / total}')
+            self.test_acc = correct/total
+            self.test_loss = loss
+            self.save_all(name=name)
 
     def save_model(self, path):
         torch.save(self.model.state_dict(), f'models/{path}.pth')
