@@ -4,6 +4,7 @@ data/*
 # Other 
 bifpn_ft/*
 bifpn_ft.zip 
+models.rar
 
 # Saved models
 models/*
